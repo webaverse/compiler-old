@@ -115,8 +115,8 @@ app.post('/', async (req, res, next) => {
       });
     } else {
       try {
-        const res = await fetch(src);
-        const s = await res.text();
+        const proxyRes = await fetch(src);
+        const s = await proxyRes.text();
         const d = await _fetchAndCompile(s, scriptUrl);
         
         res.end(d);
