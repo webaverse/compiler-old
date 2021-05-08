@@ -1,7 +1,7 @@
 import reactThreeFiber from '@react-three/fiber';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import babelStandalone from 'babel-standalone';
+import * as babelStandalone from '@babel/standalone';
 
 const browser = {
   reactThreeFiber,
