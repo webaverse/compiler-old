@@ -2,7 +2,6 @@
   "name": "compiler",
   "version": "0.0.1",
   "description": "",
-  "main": "browser.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,6 +23,8 @@
     "babel-plugin-module-resolver": "^4.1.0",
     "babel-standalone": "^6.26.0",
     "express": "^4.17.1",
+    "jszip": "^3.6.0",
+    "node-fetch": "^2.6.1",
     "react-dom": "^17.0.2",
     "three": "^0.128.0"
   },
