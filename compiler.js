@@ -94,7 +94,7 @@ const fetchAndCompile = async (scriptUrl) => {
     // console.log('got replacements', script, Array.from(script.matchAll(r)));
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
-      // console.log('got u', u);
+      // console.log('replacement', u);
       if (/^\.+\//.test(u)) {
         await _mapUrl(u, scriptUrl);
       }
@@ -169,8 +169,6 @@ const fetchAndCompile = async (scriptUrl) => {
       // console.log('render', r, React, r === React);
       return (
         <Fragment>
-          {/*<Camera position={[0, 0, 10]} />*/}
-          {/* <perspectiveCamera /> */}
           <ambientLight />
           <pointLight position={[10, 10, 10]} />
           <Box position={[-1.2, 0, 0]} />
@@ -180,13 +178,14 @@ const fetchAndCompile = async (scriptUrl) => {
     };
     export default render;
   `; */
-  const zipData = await fetchAndCompile('https://avaer.github.io/chest-rtfjs/index.js');
+  const url = new URL('https://avaer.github.io/chest-rtfjs/index.js');
+  const zipData = await fetchAndCompile(url.href);
   
   const zip = await JSZip.loadAsync(zipData);
   console.log('load file 4', zip.files);
 
   {
-    const indexJsFile = zip.files['index.js'];
+    const indexJsFile = zip.files[url.pathname.slice(1)];
     const data = await indexJsFile.async('uint8array');
     const s = new TextDecoder().decode(data);
   
