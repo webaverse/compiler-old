@@ -34,7 +34,7 @@ app.post('/', (req, res, next) => {
     const spec = babelStandalone.transform(s, {
       presets: ['react'],
     });
-    console.log('got spec', spec);
+    console.log('got spec', spec.metadata.modules.imports);
     res.end(spec.code);
   });
   req.on('error', err => {
