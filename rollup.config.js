@@ -22,27 +22,7 @@ const plugins = [
 
 export default [
   {
-    input: 'src/react.js',
-    output,
-    plugins,
-  },
-  {
     input: 'src/react-all.js',
-    output,
-    plugins,
-  },
-  {
-    input: 'src/react-dom.js',
-    output,
-    plugins,
-  },
-  {
-    input: 'src/react-three-fiber.js',
-    output,
-    plugins,
-  },
-  {
-    input: 'src/babel.js',
     output,
     plugins,
   },
