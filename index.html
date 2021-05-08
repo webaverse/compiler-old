@@ -111,7 +111,20 @@ window.reactThreeFiber = reactThreeFiber;
     export default render;
   `;
   const zipData = await fetchAndCompile(s, 'https://example.com/index.js');
-  console.log('got zip data', zipData.byteLength);
+  
+  const zip = await JSZip.loadAsync(zipData);
+  console.log('load file 4', zip.files);
+
+  {
+    const indexJsFile = zip.files['index.js'];
+    const data = await indexJsFile.async('uint8array');
+    const s = new TextDecoder().decode(data);
+    console.log('got index', s);
+  }
+  /* for (const fileName in zip.files) {
+    
+    console.log('got file', fileName, data, s);
+  } */
 })();
 
 // import browser from './dist/browser2.js';
