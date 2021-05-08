@@ -88,7 +88,7 @@ app.post('/', async (req, res, next) => {
           const b = Buffer.concat(bs);
           bs.length = 0;
           
-          console.log('render', b.length);
+          // console.log('render', b.length);
           
           let s = b.toString('utf8');
           const d = await _fetchAndCompile(s, scriptUrl);
