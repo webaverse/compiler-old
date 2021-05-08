@@ -21,6 +21,8 @@
     "@babel/preset-typescript": "^7.13.0",
     "@babel/standalone": "^7.14.1",
     "@react-three/fiber": "^6.0.19",
+    "@rollup/plugin-commonjs": "^19.0.0",
+    "@rollup/plugin-node-resolve": "^13.0.0",
     "babel-plugin-module-resolver": "^4.1.0",
     "babel-standalone": "^6.26.0",
     "express": "^4.17.1",
