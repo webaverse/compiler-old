@@ -1,11 +1,6 @@
 module.exports = {
   presets: [
-    [
-      '@babel/preset-env',
-      {
-        targets: 'last 1 chrome version',
-      },
-    ],
+    '@babel/preset-env',
     '@babel/preset-react',
     '@babel/preset-typescript',
   ],
