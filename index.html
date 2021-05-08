@@ -18,7 +18,7 @@ body {
 </head>
 <body>
 <div id=root className=root></div>
-<!-- <canvas class=canvas id=canvas></canvas> -->
+<canvas class=canvas id=canvas></canvas>
 <script type="importmap">
 {
   "imports": {
@@ -37,7 +37,7 @@ body {
 // import * as React2 from 'react';
 // import React from 'react';
 // import ReactDOM from 'react-dom';
-import {ReactDOM} from 'react-all';
+import {THREE, ReactDOM, ReactThreeFiber} from 'react-all';
 // import {render} from '@react-three/fiber';
 // import * as THREE from 'three';
 import babelStandalone from '@babel/standalone';
@@ -50,6 +50,8 @@ window.babelStandalone = babelStandalone;
 window.reactThreeFiber = reactThreeFiber; */
 
 window.onload = () => {
+
+console.log('got react three fiber', ReactThreeFiber);
 
 const fetchAndCompile = async (s, scriptUrl) => {
   const urlCache = {};
@@ -152,14 +154,14 @@ const fetchAndCompile = async (s, scriptUrl) => {
     const render = () => {
       // console.log('render', r, React, r === React);
       return (
-        <Canvas>
+        <Fragment>
           {/*<Camera position={[0, 0, 10]} />*/}
           <perspectiveCamera />
           <ambientLight />
           <pointLight position={[10, 10, 10]} />
-          <Box position={[-0.5, 0, 0]} />
-          <Box position={[0.5, 0, 0]} />
-        </Canvas>
+          <Box position={[-1.2, 0, 0]} />
+          <Box position={[1.2, 0, 0]} />
+        </Fragment>
       );
     };
     export default render;
@@ -175,15 +177,15 @@ const fetchAndCompile = async (s, scriptUrl) => {
     const s = new TextDecoder().decode(data);
   
     const root = document.getElementById('root');
-    /* const canvas = document.getElementById('canvas');
+    const canvas = document.getElementById('canvas');
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio); */
-    /* const scene = new THREE.Scene();
-    const camera = new THREE.Camera(); */
+    renderer.setPixelRatio(window.devicePixelRatio);
+    const scene = new THREE.Scene();
+    const camera = new THREE.Camera();
 
     console.log('got s', s);
 
@@ -195,11 +197,15 @@ const fetchAndCompile = async (s, scriptUrl) => {
     const fn = m.default;
     console.log('got fn', fn);
 
-    const el = ReactDOM.render(fn(), root);
-    /* const el = render(React.createElement(fn), canvas, {
+    // const el = ReactDOM.render(fn(), root);
+    const size = renderer.getSize(new THREE.Vector2());
+    const el = ReactThreeFiber.render(fn(), canvas, {
       gl: renderer,
-      size: renderer.getSize(new THREE.Vector3()),
-    }); */
+      size: {
+        width: size.x,
+        height: size.y,
+      },
+    });
     
     console.log('done render', el);
   }
