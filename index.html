@@ -49,6 +49,53 @@ window.ReactDOM = ReactDOM;
 window.babelStandalone = babelStandalone;
 window.reactThreeFiber = reactThreeFiber; */
 
+function createPointerEvents(store) {
+  // const { handlePointer } = createEvents(store)
+  const handlePointer = key => e => {
+    // const handlers = eventObject.__r3f.handlers;
+    // console.log('handle pointer', key, e);
+  };
+  const names = {
+    onClick: 'click',
+    onContextMenu: 'contextmenu',
+    onDoubleClick: 'dblclick',
+    onWheel: 'wheel',
+    onPointerDown: 'pointerdown',
+    onPointerUp: 'pointerup',
+    onPointerLeave: 'pointerleave',
+    onPointerMove: 'pointermove',
+    onPointerCancel: 'pointercancel',
+    onLostPointerCapture: 'lostpointercapture',
+  }
+
+  return {
+    connected: false,
+    handlers: (Object.keys(names).reduce(
+      (acc, key) => ({ ...acc, [key]: handlePointer(key) }),
+      {},
+    )),
+    connect: (target) => {
+      const { set, events } = store.getState()
+      events.disconnect?.()
+      set((state) => ({ events: { ...state.events, connected: target } }))
+      Object.entries(events?.handlers ?? []).forEach(([name, event]) =>
+        target.addEventListener(names[name], event, { passive: true }),
+      )
+    },
+    disconnect: () => {
+      const { set, events } = store.getState()
+      if (events.connected) {
+        Object.entries(events.handlers ?? []).forEach(([name, event]) => {
+          if (events && events.connected instanceof HTMLElement) {
+            events.connected.removeEventListener(names[name], event)
+          }
+        })
+        set((state) => ({ events: { ...state.events, connected: false } }))
+      }
+    },
+  }
+}
+
 window.onload = () => {
 
 console.log('got react three fiber', ReactThreeFiber);
@@ -205,6 +252,7 @@ const fetchAndCompile = async (s, scriptUrl) => {
         width: size.x,
         height: size.y,
       },
+      events: createPointerEvents,
     });
     
     console.log('done render', el);
