@@ -13,6 +13,8 @@ window.ReactDOM = ReactDOM;
 window.babelStandalone = babelStandalone;
 window.reactThreeFiber = reactThreeFiber; */
 
+const storageHost = 'https://ipfs.exokit.org';
+
 function createPointerEvents(store) {
   // const { handlePointer } = createEvents(store)
   const handlePointer = key => e => {
@@ -182,9 +184,72 @@ const fetchAndCompile = async (scriptUrl) => {
   const zipData = await fetchAndCompile(url.href);
   
   const zip = await JSZip.loadAsync(zipData);
-  console.log('load file 4', zip.files);
+  // console.log('load file 4', zip.files);
+
+  const fileNames = [];
+  const localFileNames = {};
+  const isDirectoryName = fileName => /\/$/.test(fileName);
+  for (const fileName in zip.files) {
+    // if (filePredicate(fileName)) {
+      fileNames.push(fileName);
+
+      let basename = fileName
+        // .replace(/^[^\/]*\/(.*)$/, '$1')
+        // .slice(tail.length);
+      localFileNames[fileName] = basename;
+
+      /* if (isFinite(_getStartableFileRegexIndex(basename))) {
+        startableFileNames.push(fileName);
+      } */
+    // }
+  }
+  let files = await Promise.all(fileNames.map(async fileName => {
+    // if (fileName.startsWith(startDirectoryUrl)) {
+      const file = zip.file(fileName);
+      
+      const b = file && await file.async('blob');
+      return {
+        name: fileName,
+        data: b,
+      };
+    /* } else {
+      return null;
+    } */
+  }));
+  // files = files.filter(f => !!f);
+  // console.log('load file 9');
+  console.log('got files', files);
+  
+  const fd = new FormData();
+  let hasRootDirectory = false;
+  for (const file of files) {
+    const {name} = file;
+    const basename = localFileNames[name];
+    console.log('append', basename, name);
+    if (isDirectoryName(name)) {
+      fd.append(
+        name,
+        new Blob([], {
+          type: 'application/x-directory',
+        }),
+        basename
+      );
+      if (basename === '') {
+        hasRootDirectory = true;
+      }
+    } else {
+      fd.append(name, file.data, basename);
+    }
+  }
 
   {
+    const uploadFilesRes = await fetch(storageHost, {
+      method: 'POST',
+      body: fd,
+    });
+    const hashes = await uploadFilesRes.json();
+    console.log('got hashes', hashes);
+    
     const indexJsFile = zip.files[url.pathname.slice(1)];
     const data = await indexJsFile.async('uint8array');
     const s = new TextDecoder().decode(data);
@@ -200,7 +265,7 @@ const fetchAndCompile = async (scriptUrl) => {
     const scene = new THREE.Scene();
     const camera = new THREE.Camera();
 
-    console.log('got s', s);
+    // console.log('got s', s);
 
     const b = new Blob([s], {
       type: 'application/javascript',
