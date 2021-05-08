@@ -161,14 +161,19 @@ const fetchAndCompile = async (s, scriptUrl) => {
       type: 'application/javascript',
     });
     const u = URL.createObjectURL(b);
-    const fn = await import(u);
+    const m = await import(u);
+    const fn = m.default;
     console.log('got fn', fn);
-    const el = reactThreeFiber.render(fn, );
+
+    const el = reactThreeFiber.render(fn, canvas, {
+      gl: renderer,
+      size: renderer.getSize(new THREE.Vector3()),
+    });
 
     
     
     
-    console.log('got index', s);
+    console.log('done render', el);
   }
   /* for (const fileName in zip.files) {
     
