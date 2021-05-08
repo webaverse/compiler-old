@@ -1,3 +1,5 @@
+const exports = {};
+const module = {exports};
 /*!
 
 JSZip v3.6.0 - A JavaScript class for generating and reading zip files
@@ -28,3 +30,4 @@ https://github.com/nodeca/pako/blob/master/LICENSE
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}]},{},[1])(1)
 });
+export default module.exports;
