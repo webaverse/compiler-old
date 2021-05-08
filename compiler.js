@@ -248,11 +248,15 @@ const fetchAndCompile = async (scriptUrl) => {
       body: fd,
     });
     const hashes = await uploadFilesRes.json();
-    console.log('got hashes', hashes);
+    // console.log('got hashes', hashes);
+    const mainDirectory = hashes.find(h => h.name === 'chest-rtfjs');
+    const mainFile = hashes.find(h => h.name === 'chest-rtfjs/index.js');
+    const mainDirectoryHash = mainDirectory.hash;
+    const mainFileName = mainFile.name.slice(mainDirectory.name.length + 1);
     
-    const indexJsFile = zip.files[url.pathname.slice(1)];
-    const data = await indexJsFile.async('uint8array');
-    const s = new TextDecoder().decode(data);
+    // const indexJsFile = zip.files[url.pathname.slice(1)];
+    // const data = await indexJsFile.async('uint8array');
+    // const s = new TextDecoder().decode(data);
   
     const root = document.getElementById('root');
     const canvas = document.getElementById('canvas');
@@ -267,11 +271,12 @@ const fetchAndCompile = async (scriptUrl) => {
 
     // console.log('got s', s);
 
-    const b = new Blob([s], {
+    /* const b = new Blob([s], {
       type: 'application/javascript',
     });
-    const u = URL.createObjectURL(b);
-    const m = await import(u);
+    const u = URL.createObjectURL(b); */
+    console.log('loading', `${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`);
+    const m = await import(`${storageHost}/ipfs/${mainDirectoryHash}/${mainFileName}`);
     const fn = m.default;
     console.log('got fn', fn);
 
