@@ -31,7 +31,9 @@
   "targets": {
     "browser": {
       "engines": {
-        "browsers": ["last 1 chrome version"]
+        "browsers": [
+          "last 1 chrome version"
+        ]
       }
     }
   }
