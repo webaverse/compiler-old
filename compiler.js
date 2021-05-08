@@ -64,7 +64,10 @@ window.onload = () => {
 
 console.log('got react three fiber', ReactThreeFiber);
 
-const fetchAndCompile = async (s, scriptUrl) => {
+const fetchAndCompile = async (scriptUrl) => {
+  const res = await fetch(scriptUrl);
+  let s = await res.text();
+  
   const urlCache = {};
   const _mapUrl = async (u, scriptUrl) => {
     const cachedContent = urlCache[u];
@@ -126,7 +129,7 @@ const fetchAndCompile = async (s, scriptUrl) => {
 };
 
 (async () => {
-  const s = `\
+  /* const s = `\
     import {React, Fragment, useState, useRef, Canvas, useFrame, useThree} from 'react-all';
   
     function Box(props) {
@@ -176,8 +179,8 @@ const fetchAndCompile = async (s, scriptUrl) => {
       );
     };
     export default render;
-  `;
-  const zipData = await fetchAndCompile(s, 'https://example.com/index.js');
+  `; */
+  const zipData = await fetchAndCompile('https://avaer.github.io/chest-rtfjs/index.js');
   
   const zip = await JSZip.loadAsync(zipData);
   console.log('load file 4', zip.files);
