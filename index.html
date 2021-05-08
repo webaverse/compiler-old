@@ -3,11 +3,15 @@
 <body>
 <script src="./dist/browser.js"></script>
 <script type=module>
-import JSZip from './jszip.js';
+// import JSZip from './jszip.js';
 const {React, ReactDOM, babelStandalone, reactThreeFiber} = window.browser;
+window.React = React;
+window.ReactDOM = ReactDOM;
+window.babelStandalone = babelStandalone;
+window.reactThreeFiber = reactThreeFiber;
 // import browser from './dist/browser2.js';
 // window.browser = browser;
-window.addEventListener('message', async e => {
+/* window.addEventListener('message', async e => {
   const zip = new JSZip();
   const spec = babelStandalone.transform(e.data, {
     presets: ['react'],
@@ -29,7 +33,7 @@ window.parent.addEventListener('message', e => {
 });
 window.postMessage(new MessageEvent('message', {
   data: `<mesh x={7}/>`,
-}), '*');
+}), '*'); */
 </script>
 </body>
 </html>
