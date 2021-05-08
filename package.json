@@ -17,9 +17,14 @@
   },
   "homepage": "https://github.com/webaverse/compiler#readme",
   "dependencies": {
+    "@babel/preset-env": "^7.14.1",
+    "@babel/preset-react": "^7.13.13",
+    "@babel/preset-typescript": "^7.13.0",
     "@react-three/fiber": "^6.0.19",
+    "babel-plugin-module-resolver": "^4.1.0",
     "babel-standalone": "^6.26.0",
     "express": "^4.17.1",
+    "react-dom": "^17.0.2",
     "three": "^0.128.0"
   },
   "targets": {
