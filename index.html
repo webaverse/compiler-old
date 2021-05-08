@@ -19,7 +19,9 @@ canvas {
 <script type="importmap">
 {
   "imports": {
-    "react": "./output/react.js"
+    "react": "./output/react.js",
+    "react-dom": "./output/react-dom.js",
+    "@react-three/fiber": "./output/react-three-fiber.js"
   }
 }
 </script>
@@ -35,6 +37,8 @@ const {React, ReactDOM, babelStandalone, reactThreeFiber} = window.browser;
 window.ReactDOM = ReactDOM;
 window.babelStandalone = babelStandalone;
 window.reactThreeFiber = reactThreeFiber; */
+
+window.onload = () => {
 
 const fetchAndCompile = async (s, scriptUrl) => {
   const urlCache = {};
@@ -100,6 +104,7 @@ const fetchAndCompile = async (s, scriptUrl) => {
 (async () => {
   const s = `\
     import {Fragment} from 'react';
+    import {Canvas} from '@react-three/fiber';
   
     function Box(props) {
       // This reference will give us direct access to the THREE.Mesh object
@@ -123,9 +128,20 @@ const fetchAndCompile = async (s, scriptUrl) => {
         </mesh>
       )
     }
+    function Camera(props) {
+      const ref = useRef()
+      const set = useThree(state => state.set)
+      // Make the camera known to the system
+      useEffect(() => void set({ camera: ref.current }), [])
+      // Update it every frame
+      useFrame(() => ref.current.updateMatrixWorld())
+      return <perspectiveCamera ref={ref} {...props} />
+    }
     const render = () => {
+      console.log('render');
       return (
         <Fragment>
+          <Camera position={[0, 0, 10]} />
           <ambientLight />
           <pointLight position={[10, 10, 10]} />
           <Box position={[-1.2, 0, 0]} />
@@ -169,9 +185,6 @@ const fetchAndCompile = async (s, scriptUrl) => {
       gl: renderer,
       size: renderer.getSize(new THREE.Vector3()),
     });
-
-    
-    
     
     console.log('done render', el);
   }
@@ -206,6 +219,8 @@ window.parent.addEventListener('message', e => {
 window.postMessage(new MessageEvent('message', {
   data: `<mesh x={7}/>`,
 }), '*'); */
+
+};
 </script>
 </body>
 </html>
