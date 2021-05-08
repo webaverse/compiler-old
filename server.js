@@ -39,7 +39,7 @@ const fetchAndCompile = async (s, scriptUrl) => {
   const _mapScript = async (script, scriptUrl) => {
     // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
     // console.log('map script');
-    const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
+    const r = /((?:im|ex)port(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
     // console.log('got replacements', script, Array.from(script.matchAll(r)));
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
