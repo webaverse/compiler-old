@@ -24,10 +24,14 @@ app.use((req, res, next) => {
 const appStatic = express.static(__dirname);
 app.use(appStatic);
 app.post('/', async (req, res, next) => {
-  const {
+  let {
     u: scriptUrl,
     src,
   } = req.query;
+  
+  if (!scriptUrl && src) {
+    scriptUrl = src;
+  }
   
   if (scriptUrl) {
     const urlCache = {};
