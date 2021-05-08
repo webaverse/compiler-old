@@ -31,17 +31,18 @@ app.post('/', async (req, res, next) => {
   
   if (scriptUrl) {
     const urlCache = {};
-    const _mapUrl = async u => {
+    const _mapUrl = async (u, scriptUrl) => {
       const cachedContent = urlCache[u];
       if (cachedContent !== undefined) {
-        return u;
+        // return u;
+        // nothing
       } else {
-        const res = await fetch(u);
+        const fullUrl = new URL(u, scriptUrl).href;
+        const res = await fetch(fullUrl);
         if (res.ok) {
           let importScript = await res.text();
-          importScript = await _mapScript(importScript, srcUrl);
-          urlCache[u] = importScript;
-          return u;
+          importScript = await _mapScript(importScript, fullUrl);
+          urlCache[u.replace(/^\.\//, '')] = importScript;
         } else {
           throw new Error('failed to load import url: ' + u);
         }
@@ -53,9 +54,9 @@ app.post('/', async (req, res, next) => {
       const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
         let u = match[2];
         if (/^\.+\//.test(u)) {
-          u = new URL(u, scriptUrl).href;
+          await _mapUrl(u, scriptUrl);
         }
-        return await _mapUrl(u);
+        return u;
       }));
       let index = 0;
       script = script.replace(r, function() {
@@ -69,11 +70,16 @@ app.post('/', async (req, res, next) => {
     };
     const _fetchAndCompile = async (s, scriptUrl) => {
       s = await _mapScript(s, scriptUrl);
+      urlCache[new URL(scriptUrl).pathname.replace(/^\//, '')] = s;
       
       const zip = new JSZip();
-      zip.file('index.js', s);
+      for (const p in urlCache) {
+        const d = urlCache[p];
+        console.log('add file', p);
+        zip.file(p, d);
+      }
       const ab = await zip.generateAsync({
-        type: "arraybuffer",
+        type: 'arraybuffer',
       });
       return Buffer.from(ab);
     };
