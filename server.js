@@ -46,7 +46,8 @@ app.post('/', async (req, res, next) => {
         if (res.ok) {
           let importScript = await res.text();
           importScript = await _mapScript(importScript, fullUrl);
-          urlCache[u.replace(/^\.\//, '')] = importScript;
+          const p = new URL(fullUrl).pathname.replace(/^\//, '');
+          urlCache[p] = importScript;
         } else {
           throw new Error('failed to load import url: ' + u);
         }
@@ -54,9 +55,12 @@ app.post('/', async (req, res, next) => {
     };
     const _mapScript = async (script, scriptUrl) => {
       // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
-      const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);$/gm;
+      // console.log('map script');
+      const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
+      // console.log('got replacements', script, Array.from(script.matchAll(r)));
       const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
         let u = match[2];
+        // console.log('got u', u);
         if (/^\.+\//.test(u)) {
           await _mapUrl(u, scriptUrl);
         }
@@ -68,13 +72,15 @@ app.post('/', async (req, res, next) => {
       });
       const spec = babelStandalone.transform(script, {
         presets: ['react'],
+        // compact: false,
       });
       script = spec.code;
       return script;
     };
     const _fetchAndCompile = async (s, scriptUrl) => {
       s = await _mapScript(s, scriptUrl);
-      urlCache[new URL(scriptUrl).pathname.replace(/^\//, '')] = s;
+      const p = new URL(scriptUrl).pathname.replace(/^\//, '');
+      urlCache[p] = s;
       
       const zip = new JSZip();
       for (const p in urlCache) {
