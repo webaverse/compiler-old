@@ -167,7 +167,7 @@ const fetchAndCompile = async (s, scriptUrl) => {
       return (
         <Fragment>
           {/*<Camera position={[0, 0, 10]} />*/}
-          <perspectiveCamera />
+          {/* <perspectiveCamera /> */}
           <ambientLight />
           <pointLight position={[10, 10, 10]} />
           <Box position={[-1.2, 0, 0]} />
