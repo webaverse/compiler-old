@@ -110,12 +110,6 @@ window.reactThreeFiber = reactThreeFiber;
     };
     export default render;
   `;
-  /* const b = new Blob([
-    s,
-  ], {
-   type: 'application/javascript',
-  });
-  const u = URL.createObjectURL(b); */
   const zipData = await fetchAndCompile(s, 'https://example.com/index.js');
   console.log('got zip data', zipData.byteLength);
 })();
