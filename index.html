@@ -5,7 +5,9 @@
 body {
   margin: 0;
 }
-canvas {
+.root {
+}
+.canvas {
   position: fixed;
   top: 0;
   bottom: 0;
@@ -15,24 +17,33 @@ canvas {
 </style>
 </head>
 <body>
-<canvas class=canvas id=canvas></canvas>
+<div id=root className=root></div>
+<!-- <canvas class=canvas id=canvas></canvas> -->
 <script type="importmap">
 {
   "imports": {
     "react": "./output/react.js",
+    "react-all": "./output/react-all.js",
     "react-dom": "./output/react-dom.js",
-    "@react-three/fiber": "./output/react-three-fiber.js"
+    "@react-three/fiber": "./output/react-three-fiber.js",
+    "@babel/standalone": "./output/babel.js",
+    "three": "./three.module.js"
   }
 }
 </script>
-<script src="./dist/browser.js"></script>
+<!-- <script src="./dist/browser.js"></script> -->
 <!-- <script src="./dist/react.js"></script> -->
 <script type=module>
 // import * as React2 from 'react';
-import * as THREE from './three.module.js';
+// import React from 'react';
+// import ReactDOM from 'react-dom';
+import {ReactDOM} from 'react-all';
+// import {render} from '@react-three/fiber';
+// import * as THREE from 'three';
+import babelStandalone from '@babel/standalone';
 import JSZip from './jszip.js';
 
-const {React, ReactDOM, babelStandalone, reactThreeFiber} = window.browser;
+// const {babelStandalone} = window.browser;
 /* window.React = React;
 window.ReactDOM = ReactDOM;
 window.babelStandalone = babelStandalone;
@@ -103,8 +114,7 @@ const fetchAndCompile = async (s, scriptUrl) => {
 
 (async () => {
   const s = `\
-    import {Fragment} from 'react';
-    import {Canvas} from '@react-three/fiber';
+    import {React, Fragment, useState, useRef, Canvas, useFrame, useThree} from 'react-all';
   
     function Box(props) {
       // This reference will give us direct access to the THREE.Mesh object
@@ -113,7 +123,9 @@ const fetchAndCompile = async (s, scriptUrl) => {
       const [hovered, setHover] = useState(false)
       const [active, setActive] = useState(false)
       // Subscribe this component to the render-loop, rotate the mesh every frame
-      useFrame((state, delta) => (mesh.current.rotation.x += 0.01))
+      useFrame((state, delta) => {
+        mesh.current.rotation.x += 0.01;
+      });
       // Return the view, these are regular Threejs elements expressed in JSX
       return (
         <mesh
@@ -138,15 +150,16 @@ const fetchAndCompile = async (s, scriptUrl) => {
       return <perspectiveCamera ref={ref} {...props} />
     }
     const render = () => {
-      console.log('render');
+      // console.log('render', r, React, r === React);
       return (
-        <Fragment>
-          <Camera position={[0, 0, 10]} />
+        <Canvas>
+          {/*<Camera position={[0, 0, 10]} />*/}
+          <perspectiveCamera />
           <ambientLight />
           <pointLight position={[10, 10, 10]} />
-          <Box position={[-1.2, 0, 0]} />
-          <Box position={[1.2, 0, 0]} />
-        </Fragment>
+          <Box position={[-0.5, 0, 0]} />
+          <Box position={[0.5, 0, 0]} />
+        </Canvas>
       );
     };
     export default render;
@@ -161,15 +174,16 @@ const fetchAndCompile = async (s, scriptUrl) => {
     const data = await indexJsFile.async('uint8array');
     const s = new TextDecoder().decode(data);
   
-    const canvas = document.getElementById('canvas');
+    const root = document.getElementById('root');
+    /* const canvas = document.getElementById('canvas');
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    const scene = new THREE.Scene();
-    const camera = new THREE.Camera();
+    renderer.setPixelRatio(window.devicePixelRatio); */
+    /* const scene = new THREE.Scene();
+    const camera = new THREE.Camera(); */
 
     console.log('got s', s);
 
@@ -181,10 +195,11 @@ const fetchAndCompile = async (s, scriptUrl) => {
     const fn = m.default;
     console.log('got fn', fn);
 
-    const el = reactThreeFiber.render(fn, canvas, {
+    const el = ReactDOM.render(fn(), root);
+    /* const el = render(React.createElement(fn), canvas, {
       gl: renderer,
       size: renderer.getSize(new THREE.Vector3()),
-    });
+    }); */
     
     console.log('done render', el);
   }
