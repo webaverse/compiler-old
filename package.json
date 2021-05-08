@@ -21,5 +21,12 @@
     "babel-standalone": "^6.26.0",
     "express": "^4.17.1",
     "three": "^0.128.0"
+  },
+  "targets": {
+    "browser": {
+      "engines": {
+        "browsers": ["last 1 chrome version"]
+      }
+    }
   }
 }
