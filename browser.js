@@ -3,9 +3,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import babelStandalone from 'babel-standalone';
 
-export {
+const browser = {
   reactThreeFiber,
   React,
   ReactDOM,
   babelStandalone,
 };
+console.log('load browser', browser);
+globalThis.browser = browser;
