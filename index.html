@@ -3,12 +3,123 @@
 <body>
 <script src="./dist/browser.js"></script>
 <script type=module>
-// import JSZip from './jszip.js';
+import JSZip from './jszip.js';
+
+const fetchAndCompile = async (s, scriptUrl) => {
+  const urlCache = {};
+  const _mapUrl = async (u, scriptUrl) => {
+    const cachedContent = urlCache[u];
+    if (cachedContent !== undefined) {
+      // return u;
+      // nothing
+    } else {
+      const fullUrl = new URL(u, scriptUrl).href;
+      const res = await fetch(fullUrl);
+      if (res.ok) {
+        let importScript = await res.text();
+        importScript = await _mapScript(importScript, fullUrl);
+        const p = new URL(fullUrl).pathname.replace(/^\//, '');
+        urlCache[p] = importScript;
+      } else {
+        throw new Error('failed to load import url: ' + u);
+      }
+    }
+  };
+  const _mapScript = async (script, scriptUrl) => {
+    // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+    // console.log('map script');
+    const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
+    // console.log('got replacements', script, Array.from(script.matchAll(r)));
+    const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
+      let u = match[2];
+      // console.log('got u', u);
+      if (/^\.+\//.test(u)) {
+        await _mapUrl(u, scriptUrl);
+      }
+      return u;
+    }));
+    let index = 0;
+    script = script.replace(r, function() {
+      return arguments[1] + replacements[index++] + arguments[3];
+    });
+    const spec = babelStandalone.transform(script, {
+      presets: ['react'],
+      // compact: false,
+    });
+    script = spec.code;
+    return script;
+  };
+
+  s = await _mapScript(s, scriptUrl);
+  const p = new URL(scriptUrl).pathname.replace(/^\//, '');
+  urlCache[p] = s;
+  
+  const zip = new JSZip();
+  for (const p in urlCache) {
+    const d = urlCache[p];
+    console.log('add file', p);
+    zip.file(p, d);
+  }
+  const ab = await zip.generateAsync({
+    type: 'arraybuffer',
+  });
+  return new Uint8Array(ab);
+};
+
 const {React, ReactDOM, babelStandalone, reactThreeFiber} = window.browser;
 window.React = React;
 window.ReactDOM = ReactDOM;
 window.babelStandalone = babelStandalone;
 window.reactThreeFiber = reactThreeFiber;
+
+(async () => {
+  const s = `\
+    import {Fragment} from 'react';
+  
+    function Box(props) {
+      // This reference will give us direct access to the THREE.Mesh object
+      const mesh = useRef()
+      // Set up state for the hovered and active state
+      const [hovered, setHover] = useState(false)
+      const [active, setActive] = useState(false)
+      // Subscribe this component to the render-loop, rotate the mesh every frame
+      useFrame((state, delta) => (mesh.current.rotation.x += 0.01))
+      // Return the view, these are regular Threejs elements expressed in JSX
+      return (
+        <mesh
+          {...props}
+          ref={mesh}
+          scale={active ? 1.5 : 1}
+          onClick={(event) => setActive(!active)}
+          onPointerOver={(event) => setHover(true)}
+          onPointerOut={(event) => setHover(false)}>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
+        </mesh>
+      )
+    }
+    const render = () => {
+      return (
+        <Fragment>
+          <ambientLight />
+          <pointLight position={[10, 10, 10]} />
+          <Box position={[-1.2, 0, 0]} />
+          <Box position={[1.2, 0, 0]} />
+        </Fragment>
+      );
+    };
+    export default render;
+  `;
+  /* const b = new Blob([
+    s,
+  ], {
+   type: 'application/javascript',
+  });
+  const u = URL.createObjectURL(b); */
+  const zipData = await fetchAndCompile(s, 'https://example.com/index.js');
+  console.log('got zip data', zipData.byteLength);
+})();
+
 // import browser from './dist/browser2.js';
 // window.browser = browser;
 /* window.addEventListener('message', async e => {
