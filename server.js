@@ -16,6 +16,67 @@ const httpPort = process.env.HTTP_PORT || 10000;
 
 console.log("HTTP Port is", httpPort);
 
+const fetchAndCompile = async (s, scriptUrl) => {
+  const urlCache = {};
+  const _mapUrl = async (u, scriptUrl) => {
+    const cachedContent = urlCache[u];
+    if (cachedContent !== undefined) {
+      // return u;
+      // nothing
+    } else {
+      const fullUrl = new URL(u, scriptUrl).href;
+      const res = await fetch(fullUrl);
+      if (res.ok) {
+        let importScript = await res.text();
+        importScript = await _mapScript(importScript, fullUrl);
+        const p = new URL(fullUrl).pathname.replace(/^\//, '');
+        urlCache[p] = importScript;
+      } else {
+        throw new Error('failed to load import url: ' + u);
+      }
+    }
+  };
+  const _mapScript = async (script, scriptUrl) => {
+    // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
+    // console.log('map script');
+    const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
+    // console.log('got replacements', script, Array.from(script.matchAll(r)));
+    const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
+      let u = match[2];
+      // console.log('got u', u);
+      if (/^\.+\//.test(u)) {
+        await _mapUrl(u, scriptUrl);
+      }
+      return u;
+    }));
+    let index = 0;
+    script = script.replace(r, function() {
+      return arguments[1] + replacements[index++] + arguments[3];
+    });
+    const spec = babelStandalone.transform(script, {
+      presets: ['react'],
+      // compact: false,
+    });
+    script = spec.code;
+    return script;
+  };
+
+  s = await _mapScript(s, scriptUrl);
+  const p = new URL(scriptUrl).pathname.replace(/^\//, '');
+  urlCache[p] = s;
+  
+  const zip = new JSZip();
+  for (const p in urlCache) {
+    const d = urlCache[p];
+    console.log('add file', p);
+    zip.file(p, d);
+  }
+  const ab = await zip.generateAsync({
+    type: 'arraybuffer',
+  });
+  return Buffer.from(ab);
+};
+
 const app = express();
 app.use((req, res, next) => {
   res.set('Access-Control-Allow-Origin', '*');
@@ -34,66 +95,6 @@ app.post('/', async (req, res, next) => {
   }
   
   if (scriptUrl) {
-    const urlCache = {};
-    const _mapUrl = async (u, scriptUrl) => {
-      const cachedContent = urlCache[u];
-      if (cachedContent !== undefined) {
-        // return u;
-        // nothing
-      } else {
-        const fullUrl = new URL(u, scriptUrl).href;
-        const res = await fetch(fullUrl);
-        if (res.ok) {
-          let importScript = await res.text();
-          importScript = await _mapScript(importScript, fullUrl);
-          const p = new URL(fullUrl).pathname.replace(/^\//, '');
-          urlCache[p] = importScript;
-        } else {
-          throw new Error('failed to load import url: ' + u);
-        }
-      }
-    };
-    const _mapScript = async (script, scriptUrl) => {
-      // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
-      // console.log('map script');
-      const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
-      // console.log('got replacements', script, Array.from(script.matchAll(r)));
-      const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
-        let u = match[2];
-        // console.log('got u', u);
-        if (/^\.+\//.test(u)) {
-          await _mapUrl(u, scriptUrl);
-        }
-        return u;
-      }));
-      let index = 0;
-      script = script.replace(r, function() {
-        return arguments[1] + replacements[index++] + arguments[3];
-      });
-      const spec = babelStandalone.transform(script, {
-        presets: ['react'],
-        // compact: false,
-      });
-      script = spec.code;
-      return script;
-    };
-    const _fetchAndCompile = async (s, scriptUrl) => {
-      s = await _mapScript(s, scriptUrl);
-      const p = new URL(scriptUrl).pathname.replace(/^\//, '');
-      urlCache[p] = s;
-      
-      const zip = new JSZip();
-      for (const p in urlCache) {
-        const d = urlCache[p];
-        console.log('add file', p);
-        zip.file(p, d);
-      }
-      const ab = await zip.generateAsync({
-        type: 'arraybuffer',
-      });
-      return Buffer.from(ab);
-    };
-    
     if (!src) {
       const bs = [];
       req.on('data', d => {
@@ -107,7 +108,7 @@ app.post('/', async (req, res, next) => {
           // console.log('render', b.length);
           
           let s = b.toString('utf8');
-          const d = await _fetchAndCompile(s, scriptUrl);
+          const d = await fetchAndCompile(s, scriptUrl);
           
           res.end(d);
         } catch (err) {
@@ -123,7 +124,7 @@ app.post('/', async (req, res, next) => {
       try {
         const proxyRes = await fetch(src);
         const s = await proxyRes.text();
-        const d = await _fetchAndCompile(s, scriptUrl);
+        const d = await fetchAndCompile(s, scriptUrl);
         
         res.end(d);
       } catch (err) {
