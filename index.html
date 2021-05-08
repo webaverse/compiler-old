@@ -1,9 +1,40 @@
 <!doctype html>
 <html>
+<head>
+<style>
+body {
+  margin: 0;
+}
+canvas {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+</style>
+</head>
 <body>
+<canvas class=canvas id=canvas></canvas>
+<script type="importmap">
+{
+  "imports": {
+    "react": "./output/react.js"
+  }
+}
+</script>
 <script src="./dist/browser.js"></script>
+<!-- <script src="./dist/react.js"></script> -->
 <script type=module>
+// import * as React2 from 'react';
+import * as THREE from './three.module.js';
 import JSZip from './jszip.js';
+
+const {React, ReactDOM, babelStandalone, reactThreeFiber} = window.browser;
+/* window.React = React;
+window.ReactDOM = ReactDOM;
+window.babelStandalone = babelStandalone;
+window.reactThreeFiber = reactThreeFiber; */
 
 const fetchAndCompile = async (s, scriptUrl) => {
   const urlCache = {};
@@ -28,7 +59,7 @@ const fetchAndCompile = async (s, scriptUrl) => {
   const _mapScript = async (script, scriptUrl) => {
     // const r = /^(\s*import[^\n]+from\s*['"])(.+)(['"])/gm;
     // console.log('map script');
-    const r = /(import(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
+    const r = /((?:im|ex)port(?:["'\s]*[\w*{}\n\r\t, ]+from\s*)?["'\s])([@\w_\-\.\/]+)(["'\s].*);?$/gm;
     // console.log('got replacements', script, Array.from(script.matchAll(r)));
     const replacements = await Promise.all(Array.from(script.matchAll(r)).map(async match => {
       let u = match[2];
@@ -65,12 +96,6 @@ const fetchAndCompile = async (s, scriptUrl) => {
   });
   return new Uint8Array(ab);
 };
-
-const {React, ReactDOM, babelStandalone, reactThreeFiber} = window.browser;
-window.React = React;
-window.ReactDOM = ReactDOM;
-window.babelStandalone = babelStandalone;
-window.reactThreeFiber = reactThreeFiber;
 
 (async () => {
   const s = `\
@@ -119,6 +144,30 @@ window.reactThreeFiber = reactThreeFiber;
     const indexJsFile = zip.files['index.js'];
     const data = await indexJsFile.async('uint8array');
     const s = new TextDecoder().decode(data);
+  
+    const canvas = document.getElementById('canvas');
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    const scene = new THREE.Scene();
+    const camera = new THREE.Camera();
+
+    console.log('got s', s);
+
+    const b = new Blob([s], {
+      type: 'application/javascript',
+    });
+    const u = URL.createObjectURL(b);
+    const fn = await import(u);
+    console.log('got fn', fn);
+    const el = reactThreeFiber.render(fn, );
+
+    
+    
+    
     console.log('got index', s);
   }
   /* for (const fileName in zip.files) {
