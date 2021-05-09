@@ -6,8 +6,9 @@ import {ReactDOM} from 'react-dom';
 import {ReactThreeFiber} from '@react-three/fiber';
 // import {render} from '@react-three/fiber';
 // import * as THREE from 'three';
-import babelStandalone from '@babel/standalone';
-import JSZip from 'jszip';
+import {BabelStandalone} from '@babel/standalone';
+import {JSZip} from 'jszip';
+console.log('got jszip', BabelStandalone, JSZip);
 
 // const {babelStandalone} = window.browser;
 /* window.React = React;
@@ -108,7 +109,7 @@ const fetchAndCompile = async (scriptUrl) => {
     script = script.replace(r, function() {
       return arguments[1] + replacements[index++] + arguments[3];
     });
-    const spec = babelStandalone.transform(script, {
+    const spec = BabelStandalone.transform(script, {
       presets: ['react'],
       // compact: false,
     });
@@ -305,7 +306,7 @@ const fetchAndCompile = async (scriptUrl) => {
 // window.browser = browser;
 /* window.addEventListener('message', async e => {
   const zip = new JSZip();
-  const spec = babelStandalone.transform(e.data, {
+  const spec = BabelStandalone.transform(e.data, {
     presets: ['react'],
   });
   console.log('got spec', spec);
